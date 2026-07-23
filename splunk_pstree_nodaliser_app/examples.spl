@@ -1,7 +1,7 @@
 ### Simple Sysmon usage
 index=sysmon EventCode=1 host=victim_machine
 | fields *
-| pstree child=Image parent=ParentImage
+| pstree_node child=Image parent=ParentImage
 | table root parent child depth lineage_path
 
 
@@ -12,14 +12,14 @@ index=sysmon EventCode=1 host=victim_machine
 | eval parent = ParentName." (".ParentProcessId.")"
 | eval child = ProcessName." (".ProcessId.")"
 | eval detail=strftime(_time,"%Y-%m-%d %H:%M:%S")." ".CommandLine
-| pstree child=child parent=parent detail=detail
+| pstree_node child=child parent=parent detail=detail
 | table root parent child depth lineage_path detail
 
 
 ### Feeding a force-directed graph
 index=sysmon EventCode=1 host=victim_machine
 | fields *
-| pstree child=Image parent=ParentImage
+| pstree_node child=Image parent=ParentImage
 | where parent!=""
 | rename parent AS source, child AS target
 | table source target root depth
@@ -28,14 +28,14 @@ index=sysmon EventCode=1 host=victim_machine
 ### Feeding a dendrogram
 index=sysmon EventCode=1 host=victim_machine
 | fields *
-| pstree child=Image parent=ParentImage
+| pstree_node child=Image parent=ParentImage
 | table root child parent depth lineage lineage_path
 
 
 ### Searching for a tree containing a specific process
 index=sysmon EventCode=1 host=victim_machine
 | fields *
-| pstree child=Image parent=ParentImage
+| pstree_node child=Image parent=ParentImage
 | search lineage_path=*<process name>*
 | table root parent child depth lineage_path
 
@@ -43,5 +43,5 @@ index=sysmon EventCode=1 host=victim_machine
 ### Use legacy recursive method
 index=sysmon EventCode=1 host=victim_machine
 | fields *
-| pstree child=Image parent=ParentImage method="r"
+| pstree_node child=Image parent=ParentImage method="r"
 | table root parent child depth lineage_path

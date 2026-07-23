@@ -44,7 +44,7 @@ class PSTreeCommand(EventingCommand):
         ##Syntax
 
         .. code-block::
-        pstree parent=<field> child=<field> detail=<field> method=<r|i>
+        pstree_node parent=<field> child=<field> detail=<field> method=<r|i>
 
         ##Description
 
@@ -59,7 +59,7 @@ class PSTreeCommand(EventingCommand):
         Display tree of sysmon process ids.
 
         .. code-block::
-        index=sysmon EventCode=1 | pstree parent=ParentProcessID child=ProcessID
+        index=sysmon EventCode=1 | pstree_node parent=ParentProcessID child=ProcessID
 
         """
 
