@@ -23,11 +23,12 @@ There are several ways to implement the command:
 
 ## Usage
 
-The `pstree` command requires two arguments, `child` and `parent`. It's intended for Sysmon
-`EventCode=1` events but can be used for anything.
+The `pstreenode` command requires two arguments, `child` and `parent`. It's intended for Sysmon
+`EventCode=1` events but can be used for anything. (Named `pstreenode` rather than `pstree` to
+avoid clashing with the unrelated `pstree` command shipped by other Splunkbase apps.)
 
-**Note:** Fields passed as arguments to the `pstree` command must be referenced before calling
-`pstree`. The simplest way to ensure this is to include `| fields *` prior to piping to `pstree`.
+**Note:** Fields passed as arguments to the `pstreenode` command must be referenced before calling
+`pstreenode`. The simplest way to ensure this is to include `| fields *` prior to piping to `pstreenode`.
 
 ### Output fields
 
@@ -48,7 +49,7 @@ tree and yields one row per node, in preorder, with these fields:
 each row are already a ready-made adjacency list for building a hierarchy (e.g.
 `d3.stratify().id(d => d.child).parentId(d => d.parent)`).
 
-The `pstree` command uses an iterative algorithm to create the process tree. The legacy recursive
+The `pstreenode` command uses an iterative algorithm to create the process tree. The legacy recursive
 algorithm can be used by specifying `method="r"`.
 
 ### Simple Sysmon usage
@@ -56,7 +57,7 @@ algorithm can be used by specifying `method="r"`.
 ```
 index=sysmon EventCode=1 host=victim_machine
 | fields *
-| pstree child=Image parent=ParentImage
+| pstreenode child=Image parent=ParentImage
 | table root parent child depth lineage_path
 ```
 
@@ -69,7 +70,7 @@ index=sysmon EventCode=1 host=victim_machine
 | eval parent = ParentName." (".ParentProcessId.")"
 | eval child = ProcessName." (".ProcessId.")"
 | eval detail=strftime(_time,"%Y-%m-%d %H:%M:%S")." ".CommandLine
-| pstree child=child parent=parent detail=detail
+| pstreenode child=child parent=parent detail=detail
 | table root parent child depth lineage_path detail
 ```
 
@@ -81,7 +82,7 @@ Each row is already an edge (`parent` -> `child`); just rename to whatever your 
 ```
 index=sysmon EventCode=1 host=victim_machine
 | fields *
-| pstree child=Image parent=ParentImage
+| pstreenode child=Image parent=ParentImage
 | where parent!=""
 | rename parent AS source, child AS target
 | table source target root depth
@@ -96,7 +97,7 @@ as a hierarchical path:
 ```
 index=sysmon EventCode=1 host=victim_machine
 | fields *
-| pstree child=Image parent=ParentImage
+| pstreenode child=Image parent=ParentImage
 | table root child parent depth lineage lineage_path
 ```
 
@@ -105,7 +106,7 @@ index=sysmon EventCode=1 host=victim_machine
 ```
 index=sysmon EventCode=1 host=victim_machine
 | fields *
-| pstree child=Image parent=ParentImage
+| pstreenode child=Image parent=ParentImage
 | search lineage_path=*<process name>*
 | table root parent child depth lineage_path
 ```
@@ -115,7 +116,7 @@ index=sysmon EventCode=1 host=victim_machine
 ```
 index=sysmon EventCode=1 host=victim_machine
 | fields *
-| pstree child=Image parent=ParentImage method="r"
+| pstreenode child=Image parent=ParentImage method="r"
 | table root parent child depth lineage_path
 ```
 

@@ -44,7 +44,7 @@ class PSTreeCommand(EventingCommand):
         ##Syntax
 
         .. code-block::
-        pstree parent=<field> child=<field> detail=<field> method=<r|i>
+        pstreenode parent=<field> child=<field> detail=<field> method=<r|i>
 
         ##Description
 
@@ -59,7 +59,7 @@ class PSTreeCommand(EventingCommand):
         Display tree of sysmon process ids.
 
         .. code-block::
-        index=sysmon EventCode=1 | pstree parent=ParentProcessID child=ProcessID
+        index=sysmon EventCode=1 | pstreenode parent=ParentProcessID child=ProcessID
 
         """
 
@@ -88,17 +88,19 @@ class PSTreeCommand(EventingCommand):
         require=False, validate=validators.Set("r","i"))
 
         def make_row(self, node, parent, root, lineage, depth, tree):
-            # detail for a node is stored under tree[<its parent>][<node>]
+            # detail for a node is stored under tree[<its parent>][<node>]. parent is None
+            # only for the synthetic root row, which has no real parent and thus no detail;
+            # a real (possibly empty-string) parent field value always looks up detail normally.
             row = {
                 "root": root,
-                "parent": parent,
+                "parent": parent if parent is not None else "",
                 "child": node,
                 "depth": depth,
                 "lineage": list(lineage),
                 "lineage_path": " -> ".join(lineage),
             }
             if self.detail:
-                row["detail"] = tree[parent][node] if parent != "" else ""
+                row["detail"] = tree[parent][node] if parent is not None else ""
             return row
 
         def walk_recursive(self, node, parent, root, lineage, depth, tree, rows):
@@ -113,7 +115,7 @@ class PSTreeCommand(EventingCommand):
         def walk_iterative(self, root, tree):
             stack = collections.deque([root])
             preorder = [root]
-            yield self.make_row(root, "", root, [root], 0, tree)
+            yield self.make_row(root, None, root, [root], 0, tree)
             while len(stack) > 0:
                 flag = False
                 top = stack[-1]
@@ -157,7 +159,7 @@ class PSTreeCommand(EventingCommand):
                     if method=="r":
                         rows=[]
                         #Recursively build tree for every root process
-                        self.walk_recursive(root, "", root, [root], 0, tree, rows)
+                        self.walk_recursive(root, None, root, [root], 0, tree, rows)
                         for row in rows:
                             yield row
                     else:
